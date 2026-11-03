@@ -51,10 +51,10 @@ export const buildReschedulePatch = (court: Court, dateStr: string, hours: numbe
     court: court.id, courtName: court.name, date: dateStr, label: fmtIsoFull(dateStr), hours: [...hours],
 });
 
-const isOwner = (b: Booking, userId: string | null | undefined): boolean => !!userId && b.userId === userId;
+export const isOwner = (b: Booking, userId: string | null | undefined): boolean => !!userId && b.userId === userId;
 
 
-export const filterBookings = (bookings: Booking[], q: string , userId: | null): Booking[] => {
+export const filterBookings = (bookings: Booking[], q: string , userId: string | null): Booking[] => {
     const query = q.trim().toLowerCase();
     return bookings
         .filter((booking) => isOwner(booking, userId))

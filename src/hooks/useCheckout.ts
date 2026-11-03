@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react';
-import { buildReschedulePatch } from '@/actions/booking.actions';
+import {buildReschedulePatch, isOwner} from '@/actions/booking.actions';
 import { EMPTY_FEEDBACK } from '@/actions/booking.reducer';
 import { CHECKOUT_PENDING } from '@/constants';
 import { normWa } from '@/lib/format';
@@ -24,13 +24,16 @@ export function useCheckout() {
     dispatch({ type: 'SET_FEEDBACK', feedback: EMPTY_FEEDBACK });
 
     if (state.rescheduleCode && court) {
-      const existing = bookings.find(b => b.code === state.rescheduleCode);
-      if (existing) {
-        const patch = buildReschedulePatch(court, state.selectedDate, state.hours);
-        dataDispatch({ type: 'UPDATE_BOOKING', code: existing.code, patch });
-        dispatch({ type: 'RESCHEDULE_DONE', booking: { ...existing, ...patch } });
+      const existing = bookings.find(b => b.code === state.rescheduleCode && isOwner(b, session.uid));
+      if (!existing) {
+        dispatch({ type: 'CANCEL_RESCHEDULE' });
+        dispatch({ type: 'SET_FEEDBACK', feedback: { type: 'err', message: 'Booking tidak ditemukan atau bukan milik Anda.' } });
         return;
       }
+      const patch = buildReschedulePatch(court, state.selectedDate, state.hours);
+      dataDispatch({ type: 'UPDATE_BOOKING', code: existing.code, patch, asUserId: session.uid });
+      dispatch({ type: 'RESCHEDULE_DONE', booking: { ...existing, ...patch } });
+      return;
     }
     dispatch({ type: 'OPEN_PAY' });
   }, [session, openAuth, court, state, bookings, dispatch, dataDispatch]);

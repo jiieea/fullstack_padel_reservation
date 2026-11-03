@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { filterBookings } from '@/actions/booking.actions';
+import { filterBookings, isOwner } from '@/actions/booking.actions';
 import { downloadICS } from '@/lib/download';
 import { useAuth } from '@/providers/AuthProvider';
 import { useBooking } from '@/providers/BookingProvider';
@@ -12,21 +12,24 @@ export function useMyBookings() {
   const { dispatch } = useBooking();
   const { session, openAuth, pendingKey, clearPending } = useAuth();
   const [query, setQuery] = useState('');
-  const list = useMemo(() => filterBookings(bookings, query), [bookings, query]);
+  const uid = session?.uid ?? null;
+
+  // only the logged-in user's own bookings
+  const list = useMemo(() => filterBookings(bookings, query, uid), [bookings, query, uid]);
 
   const run = useCallback((act: Act, code: string) => {
     const booking = bookings.find(b => b.code === code);
-    if (!booking) return;
-    if (act === 'cancel') dataDispatch({ type: 'REMOVE_BOOKING', code });
+    if (!booking || !isOwner(booking, uid)) return; // not the owner → ignore
+    if (act === 'cancel') dataDispatch({ type: 'REMOVE_BOOKING', code, asUserId: uid! });
     else { dispatch({ type: 'START_RESCHEDULE', booking }); window.location.hash = '#booking'; }
-  }, [bookings, dataDispatch, dispatch]);
+  }, [bookings, uid, dataDispatch, dispatch]);
 
-  // cancel / reschedule require login; resume the action after logging in
   const request = useCallback((act: Act, code: string) => {
     if (!session) { openAuth('Masuk dulu untuk mengelola booking.', `${act}:${code}`); return; }
     run(act, code);
   }, [session, openAuth, run]);
 
+  // resume the action after logging in (ownership is re-checked inside run)
   useEffect(() => {
     if (!session || !pendingKey) return;
     const m = /^(cancel|reschedule):(.+)$/.exec(pendingKey);
@@ -34,9 +37,13 @@ export function useMyBookings() {
   }, [session, pendingKey, clearPending, run]);
 
   return {
-    query, setQuery, list,
+    query, setQuery, list, isLoggedIn: !!session,
+    openLogin: () => openAuth('Masuk untuk melihat dan mengelola booking Anda.'),
     cancel: (code: string) => request('cancel', code),
     reschedule: (code: string) => request('reschedule', code),
-    downloadIcs: (code: string) => { const b = bookings.find(x => x.code === code); if (b) downloadICS(b); },
+    downloadIcs: (code: string) => {
+      const b = bookings.find(x => x.code === code);
+      if (b && isOwner(b, uid)) downloadICS(b);
+    },
   };
 }
