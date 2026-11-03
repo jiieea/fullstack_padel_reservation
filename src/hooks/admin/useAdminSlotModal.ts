@@ -23,7 +23,7 @@ export function useAdminSlotModal() {
   return {
     target, court, status, price, guest, setGuest, close: closeSlot,
     dateLabel: target ? fmtIsoFull(target.date) : '',
-    cancelBooking: guard(() => { if (status?.booking) dispatch({ type: 'REMOVE_BOOKING', code: status.booking.code }); }),
+    cancelBooking: guard(() => { if (status?.booking) dispatch({ type: 'REMOVE_BOOKING', code: status.booking.code, asUserId: guest.name}); }),
     unblock: guard(() => dispatch({ type: 'REMOVE_BLOCK', court: target!.courtId, date: target!.date, hour: target!.hour })),
     addWalkin: guard(() => dispatch({ type: 'ADD_BOOKING', booking: buildWalkin(court!, target!.date, target!.hour, price, guest.name, guest.wa) })),
     setMaintenance: guard(() => dispatch({ type: 'ADD_BLOCK', block: { court: target!.courtId, date: target!.date, hour: target!.hour, note: 'Maintenance' } })),

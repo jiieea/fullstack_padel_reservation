@@ -11,7 +11,6 @@ export function MyBookingsSection() {
             <div className="wrap">
                 <SectionHeading title="Self-Service Portal & Booking Saya"
                                 description="Lihat, ubah jadwal, atau batalkan booking milik akun Anda."/>
-
                 {!m.isLoggedIn ? (
                     <div className="empty" style={{textAlign: 'center'}}>
                         <p>Masuk untuk melihat dan mengelola booking Anda.</p>
