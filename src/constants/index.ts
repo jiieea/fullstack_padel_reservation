@@ -7,6 +7,7 @@ export const STORAGE_KEYS = {
     BLOCKS: 'padelia_v3_blocks',
     USERS: 'padelia_v3_users',
     SESSION: 'padelia_v3_session',
+    SUBSCRIPTION: 'padelia_v3_subscriptions'
 } as const;
 
 export const DEFAULT_CONFIG: Config = {
@@ -49,6 +50,7 @@ export const PHONE_REGEX = /^(\+?62|0)8\d{7,12}$/;
 export const DEFAULT_AUTH_NOTE = 'Masuk untuk melanjutkan.';
 export const CHECKOUT_PENDING = 'checkout';
 export const OCC_THRESHOLDS = {high: 0.65, mid: 0.3};
+export const SUBSCRIPTION_DAYS = 30;
 
 export const DOW_SHORT = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 export const DOW_OPTIONS = [
